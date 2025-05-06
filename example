@@ -1,0 +1,83 @@
+
+## ✅ Example: Randomizing a `Packet` Class with Constraints
+
+This example:
+
+* Declares a class with `rand` variables
+* Adds constraints to control legal values
+* Uses `randomize()` and prints results
+
+---
+
+### **1. Define the Class**
+
+```systemverilog
+class Packet;
+
+    rand bit [7:0] addr;
+    rand bit [7:0] data;
+    rand bit [1:0] kind;
+
+    // Constraint block
+    constraint addr_c { addr inside {[16:31]}; }       // addr between 16 and 31
+    constraint data_c { data % 4 == 0; }                // data must be multiple of 4
+    constraint kind_c { kind != 2'b11; }                // kind must not be 3
+
+    // Post-randomize hook to display values
+    function void post_randomize();
+        $display("Randomized Packet -> addr: %0d, data: %0d, kind: %0b", addr, data, kind);
+    endfunction
+
+endclass
+```
+
+---
+
+### **2. Testbench: Generate Multiple Packets**
+
+```systemverilog
+module tb_randomization;
+
+    initial begin
+        Packet p = new();
+
+        repeat (5) begin
+            if (p.randomize())
+                $display("Randomization successful.");
+            else
+                $display("Randomization failed.");
+        end
+    end
+
+endmodule
+```
+
+---
+
+### **Sample Output:**
+
+```
+Randomized Packet -> addr: 24, data: 12, kind: 01
+Randomization successful.
+Randomized Packet -> addr: 17, data: 32, kind: 00
+Randomization successful.
+...
+```
+
+All output values respect:
+
+* `addr` in `[16:31]`
+* `data` is multiple of 4
+* `kind` is not `11`
+
+---
+
+### ✅ Key Takeaways:
+
+| Element          | Purpose                              |
+| ---------------- | ------------------------------------ |
+| `rand`           | Marks variable for random generation |
+| `constraint`     | Defines rules for value generation   |
+| `.randomize()`   | Triggers random value assignment     |
+| `post_randomize` | Used for logging/debugging           |
+
